@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VehicleVision AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="container nav">
+            <a class="brand" href="/">VehicleVision <span>AI</span></a>
+            <span class="nav-label">Vehicle Classification System</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <p class="eyebrow">COMPUTER VISION PROJECT</p>
+            <h1>VehicleVision AI</h1>
+            <p class="intro">
+                Upload a vehicle image and classify it using a Convolutional
+                Neural Network or a traditional HOG + SVM model.
+            </p>
+        </section>
+
+        <section class="stats">
+            <article class="stat-card">
+                <p>CNN Test Accuracy</p>
+                <strong>{{ "%.2f"|format(cnn_accuracy) }}%</strong>
+                <span>Deep learning model</span>
+            </article>
+            <article class="stat-card">
+                <p>HOG + SVM Test Accuracy</p>
+                <strong>{{ "%.2f"|format(svm_accuracy) }}%</strong>
+                <span>Traditional machine learning</span>
+            </article>
+            <article class="stat-card">
+                <p>Vehicle Categories</p>
+                <strong>04</strong>
+                <span>Bus, car, motorcycle, truck</span>
+            </article>
+        </section>
+
+        <section class="main-grid">
+            <article class="panel">
+                <h2>Classify a Vehicle</h2>
+                <p class="muted">Choose an image and select a model.</p>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <label for="image">Vehicle image</label>
+                    <input id="image" type="file" name="image"
+                           accept=".jpg,.jpeg,.png,.webp,.bmp" required>
+
+                    <label for="model">Classification model</label>
+                    <select id="model" name="model">
+                        <option value="CNN" {% if selected_model == 'CNN' %}selected{% endif %}>
+                            CNN — Deep Learning
+                        </option>
+                        <option value="HOG_SVM" {% if selected_model == 'HOG_SVM' %}selected{% endif %}>
+                            HOG + SVM — Traditional ML
+                        </option>
+                    </select>
+
+                    <button type="submit">Analyze Image</button>
+                </form>
+
+                {% if error %}
+                    <div class="error" role="alert">{{ error }}</div>
+                {% endif %}
+            </article>
+
+            <article class="panel result-panel">
+                <h2>Prediction Result</h2>
+
+                {% if result %}
+                    <div class="prediction">
+                        <p class="muted">Predicted vehicle</p>
+                        <h3>{{ result.label|title }}</h3>
+                        {% if result.confidence is not none %}
+                            <p class="confidence">
+                                CNN confidence: {{ "%.2f"|format(result.confidence) }}%
+                            </p>
+                        {% else %}
+                            <p class="muted">Predicted using HOG + SVM.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if image_url %}
+                        <img class="preview" src="{{ image_url }}" alt="Uploaded vehicle">
+                    {% endif %}
+
+                    {% if result.scores %}
+                        <h4>Class scores</h4>
+                        {% for item in result.scores %}
+                            <div class="score-row">
+                                <div class="score-label">
+                                    <span>{{ item.label|title }}</span>
+                                    <span>{{ "%.1f"|format(item.score) }}%</span>
+                                </div>
+                                <div class="bar">
+                                    <div class="bar-fill" style="width: {{ item.score }}%"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <p class="footnote">
+                            Scores are model outputs, not guaranteed probabilities
+                            of real-world correctness.
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-box">Image results appear here</div>
+                        <p class="muted">
+                            Upload an image to see the predicted vehicle category.
+                        </p>
+                    </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="panel comparison">
+            <h2>Model Performance Comparison</h2>
+            <p class="muted">
+                Evaluation results from the held-out test set of 3,117 images.
+            </p>
+            <div class="comparison-row">
+                <span>CNN</span>
+                <div class="bar">
+                    <div class="bar-fill" style="width: {{ cnn_accuracy }}%"></div>
+                </div>
+                <strong>{{ "%.2f"|format(cnn_accuracy) }}%</strong>
+            </div>
+            <div class="comparison-row">
+                <span>HOG + SVM</span>
+                <div class="bar">
+                    <div class="bar-fill svm-fill" style="width: {{ svm_accuracy }}%"></div>
+                </div>
+                <strong>{{ "%.2f"|format(svm_accuracy) }}%</strong>
+            </div>
+            <p class="footnote">
+                CNN achieved higher test accuracy in these experiments.
+                Performance may vary on images outside the dataset.
+            </p>
+        </section>
+
+        <section class="info-grid">
+            <article class="info-card">
+                <h3>1. CNN</h3>
+                <p>
+                    Learns image features through convolutional and pooling layers
+                    and predicts one of four vehicle classes.
+                </p>
+            </article>
+            <article class="info-card">
+                <h3>2. HOG + SVM</h3>
+                <p>
+                    Extracts Histogram of Oriented Gradients features and uses a
+                    Support Vector Machine to classify the image.
+                </p>
+            </article>
+            <article class="info-card">
+                <h3>3. Dataset</h3>
+                <p>
+                    The project uses 20,756 images across bus, car, motorcycle,
+                    and truck categories, with separate training, validation,
+                    and test splits.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            VehicleVision AI · Academic Computer Vision Project
+        </div>
+    </footer>
+</body>
+</html>
